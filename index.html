@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Cheat Sheet — The 30-Minute AI Workday | Entre_Steph</title>
+<meta name="description" content="Stop losing hours to tasks AI can do in minutes. Get the free 30-Minute AI Workday Cheatsheet and reclaim your mornings.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #111111;
+    --dark: #1a1818;
+    --red: #B91C1C;
+    --gold: #C9A84C;
+    --cream: #F9F5F0;
+    --white: #FFFFFF;
+    --gray: #555;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  .nav {
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid #222;
+  }
+
+  .nav-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .nav-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+  .nav-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* HERO */
+  .hero {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 72px 32px 56px;
+    text-align: center;
+  }
+
+  .eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+
+  .headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(34px, 5vw, 54px);
+    line-height: 1.12;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 22px;
+  }
+
+  .headline em {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .subhead {
+    font-size: 17px;
+    font-weight: 300;
+    color: #bbb;
+    line-height: 1.75;
+    max-width: 560px;
+    margin: 0 auto 40px;
+  }
+
+  /* FORM CARD */
+  .form-card {
+    background: #1a1818;
+    border: 1px solid #2a2a2a;
+    border-top: 3px solid var(--gold);
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 40px 36px;
+  }
+
+  .form-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .form-card p {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 28px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 8px;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: #111;
+    border: 1px solid #333;
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus {
+    border-color: var(--gold);
+  }
+
+  .form-group input::placeholder { color: #555; }
+
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: var(--red);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    border: none;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+
+  .btn-submit:hover { background: #991b1b; }
+  .btn-submit:disabled { background: #555; cursor: not-allowed; }
+
+  .privacy {
+    font-size: 11px;
+    color: #555;
+    text-align: center;
+    margin-top: 14px;
+  }
+
+  .error-msg {
+    display: none;
+    background: #3b0a0a;
+    border: 1px solid var(--red);
+    color: #fca5a5;
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+
+  /* WHAT YOU GET */
+  .features {
+    max-width: 760px;
+    margin: 72px auto 0;
+    padding: 0 32px 80px;
+  }
+
+  .features-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .features-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--white);
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .feature-item {
+    background: #1a1818;
+    border: 1px solid #2a2a2a;
+    padding: 24px 20px;
+  }
+
+  .feature-icon { font-size: 28px; margin-bottom: 12px; }
+
+  .feature-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .feature-desc {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.6;
+  }
+
+  /* QUOTE */
+  .quote-strip {
+    background: var(--red);
+    padding: 32px;
+    text-align: center;
+  }
+
+  .quote-strip p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: white;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .quote-strip .attrib {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 12px;
+    display: block;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 24px 32px;
+    border-top: 1px solid #222;
+    text-align: center;
+    font-size: 11px;
+    color: #444;
+    letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 480px) {
+    .hero { padding: 48px 24px 40px; }
+    .form-card { padding: 28px 20px; }
+    .features { padding: 0 24px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="https://drive.google.com/uc?id=1hQgsbtUUJRlUwNK_WNXe0oP3AvkOeZIM&export=view" alt="Entre_Steph" onerror="this.style.display='none'">
+  </div>
+  <div class="nav-brand">Entre_Steph</div>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Free Cheat Sheet</div>
+  <h1 class="headline">
+    Stop losing hours to tasks<br><em>AI can do in minutes.</em>
+  </h1>
+  <p class="subhead">
+    Get the 30-Minute AI Workday Cheatsheet — the exact 3-task system busy parents use to show up online every day without burning out.
+  </p>
+
+  <div class="form-card">
+    <h2>Send me the free cheatsheet</h2>
+    <p>Enter your info below and I'll email it to you right now.</p>
+
+    <form id="optin-form">
+      <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" name="firstName" placeholder="Your first name" required autocomplete="given-name">
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <button type="submit" class="btn-submit" id="submit-btn">
+        Send Me the Cheatsheet →
+      </button>
+      <p class="privacy">No spam. Unsubscribe anytime.</p>
+      <div class="error-msg" id="error-msg">Something went wrong. Please try again.</div>
+    </form>
+  </div>
+</section>
+
+<section class="features">
+  <div class="features-eyebrow">What's Inside</div>
+  <h2 class="features-title">30 minutes. 3 tasks. Real results.</h2>
+  <div class="features-grid">
+    <div class="feature-item">
+      <div class="feature-icon">✍️</div>
+      <div class="feature-title">Content Creation</div>
+      <div class="feature-desc">A plug-and-play AI prompt that writes your posts, captions, and emails in under 10 minutes.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">📩</div>
+      <div class="feature-title">Lead Follow-Up</div>
+      <div class="feature-desc">The exact message to send warm leads without sounding salesy — let AI draft it for you.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🗓️</div>
+      <div class="feature-title">Daily Planning</div>
+      <div class="feature-desc">A 10-minute AI planning session that tells you exactly what to focus on each day.</div>
+    </div>
+  </div>
+</section>
+
+<div class="quote-strip">
+  <p>"You don't need more time — you need a system."</p>
+  <span class="attrib">— Steph, Entre_Steph</span>
+</div>
+
+<footer>
+  &copy; 2026 Entre_Steph &nbsp;·&nbsp; <a href="/privacy" style="color:#666;">Privacy Policy</a>
+</footer>
+
+<script>
+  document.getElementById('optin-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const errMsg = document.getElementById('error-msg');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    errMsg.style.display = 'none';
+
+    const firstName = document.getElementById('firstName').value.trim();
+    const email = document.getElementById('email').value.trim();
+
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, email })
+      });
+
+      if (res.ok) {
+        window.location.href = '/thank-you?name=' + encodeURIComponent(firstName);
+      } else {
+        throw new Error('Server error');
+      }
+    } catch(err) {
+      errMsg.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Send Me the Cheatsheet →';
+    }
+  });
+</script>
+
+</body>
+</html>
