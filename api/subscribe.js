@@ -80,6 +80,11 @@ function getSmtpTransport() {
     auth: {
       user: 'steph@entresteph.com',
       pass: process.env.ENTRESTEPH_SMTP_PASS
+    },
+    dkim: {
+      domainName: 'entresteph.com',
+      keySelector: 'default',
+      privateKey: process.env.DKIM_PRIVATE_KEY
     }
   });
 }
