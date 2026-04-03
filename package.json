@@ -1,5 +1,8 @@
 {
   "name": "entresteph-optin",
   "version": "1.0.0",
-  "description": "Entre_Steph lead magnet opt-in funnel"
+  "description": "Entre_Steph lead magnet opt-in funnel",
+  "dependencies": {
+    "nodemailer": "^8.0.4"
+  }
 }

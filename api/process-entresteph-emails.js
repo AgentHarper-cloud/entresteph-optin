@@ -2,6 +2,7 @@
 // Runs daily — sends Day 2, Day 4, Day 6 emails to subscribers
 
 const https = require('https');
+const nodemailer = require('nodemailer');
 
 const TURSO_URL = process.env.TURSO_URL;
 const TURSO_TOKEN = process.env.TURSO_TOKEN;
@@ -151,37 +152,29 @@ function turso(sql, args = []) {
   }, { Authorization: `Bearer ${TURSO_TOKEN}` });
 }
 
-async function getGmailToken() {
-  const r = await request('POST', 'https://oauth2.googleapis.com/token', {
-    client_id: process.env.GMAIL_CLIENT_ID,
-    client_secret: process.env.GMAIL_CLIENT_SECRET,
-    refresh_token: process.env.GMAIL_REFRESH_TOKEN,
-    grant_type: 'refresh_token'
+function getSmtpTransport() {
+  return nodemailer.createTransport({
+    host: 'mail.privateemail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: 'steph@entresteph.com',
+      pass: process.env.ENTRESTEPH_SMTP_PASS
+    }
   });
-  return r.body.access_token;
 }
 
-async function sendEmail(toEmail, firstName, emailNum, gmailToken) {
+async function sendEmail(toEmail, firstName, emailNum) {
   const content = getEmail(emailNum, firstName);
   if (!content) return;
 
-  const msg = [
-    `From: Steph | Entre_Steph <AgentHarper@thedateprofiler.com>`,
-    `To: ${toEmail}`,
-    `Subject: ${content.subject}`,
-    `Content-Type: text/html; charset=utf-8`,
-    ``,
-    content.html
-  ].join('\r\n');
-
-  const raw = Buffer.from(msg).toString('base64')
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-
-  return request('POST',
-    'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
-    { raw },
-    { Authorization: `Bearer ${gmailToken}` }
-  );
+  const transport = getSmtpTransport();
+  return transport.sendMail({
+    from: 'Steph | Entre_Steph <steph@entresteph.com>',
+    to: toEmail,
+    subject: content.subject,
+    html: content.html
+  });
 }
 
 // ─── Main Handler ─────────────────────────────────────────────────────────────
@@ -208,7 +201,6 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ sent: 0, message: 'No emails due' });
     }
 
-    const gmailToken = await getGmailToken();
     let sent = 0;
     const errors = [];
 
@@ -218,7 +210,7 @@ module.exports = async function handler(req, res) {
       ];
 
       try {
-        await sendEmail(email, firstName || 'friend', nextEmail, gmailToken);
+        await sendEmail(email, firstName || 'friend', nextEmail);
 
         // Advance to next email or mark complete
         if (nextEmail >= 4) {

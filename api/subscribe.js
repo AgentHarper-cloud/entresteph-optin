@@ -1,8 +1,10 @@
 // Entre_Steph Lead Magnet Opt-In Handler
-// 1. Adds subscriber to Kit (ConvertKit) with entre-steph-free-optin tag
-// 2. Sends instant delivery email via Gmail OAuth
+// 1. Adds subscriber to Turso (schedules follow-up sequence)
+// 2. Adds to Kit (subscriber list)
+// 3. Sends instant delivery email via steph@entresteph.com SMTP
 
 const https = require('https');
+const nodemailer = require('nodemailer');
 
 const KIT_TAG_ID = '18738594'; // entre-steph-free-optin
 const PDF_DOWNLOAD_URL = 'https://drive.google.com/uc?id=1hQgsbtUUJRlUwNK_WNXe0oP3AvkOeZIM&export=download';
@@ -70,17 +72,19 @@ async function addToKit(firstName, email) {
   return res;
 }
 
-async function getGmailToken() {
-  const r = await request('POST', 'https://oauth2.googleapis.com/token', {
-    client_id: process.env.GMAIL_CLIENT_ID,
-    client_secret: process.env.GMAIL_CLIENT_SECRET,
-    refresh_token: process.env.GMAIL_REFRESH_TOKEN,
-    grant_type: 'refresh_token'
+function getSmtpTransport() {
+  return nodemailer.createTransport({
+    host: 'mail.privateemail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: 'steph@entresteph.com',
+      pass: process.env.ENTRESTEPH_SMTP_PASS
+    }
   });
-  return r.body.access_token;
 }
 
-async function sendDeliveryEmail(firstName, email, token) {
+async function sendDeliveryEmail(firstName, email) {
   const subject = `Your 30-Minute AI Workday Cheatsheet is here, ${firstName}!`;
   const html = `
 <div style="font-family:'Georgia',serif;max-width:580px;margin:0 auto;padding:40px 32px;color:#222;background:#fff;">
@@ -96,39 +100,28 @@ async function sendDeliveryEmail(firstName, email, token) {
     </a>
   </div>
 
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Save this email &mdash; that link is permanent, so you can come back anytime.</p>
+  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Save this email — that link is permanent, so you can come back anytime.</p>
 
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Inside you'll find the 3 tasks I use to run my entire content system in 30 minutes a day &mdash; including the copy-paste AI prompts for each one. Start with Task 1 and see how different it feels to show up online without the overwhelm.</p>
+  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Inside you'll find the 3 tasks I use to run my entire content system in 30 minutes a day — including the copy-paste AI prompts for each one. Start with Task 1 and see how different it feels to show up online without the overwhelm.</p>
 
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">I'll be in your inbox over the next few days with more on building a real AI-powered business system &mdash; even if you're working with stolen pockets of time.</p>
+  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">I'll be in your inbox over the next few days with more on building a real AI-powered business system — even if you're working with stolen pockets of time.</p>
 
   <p style="font-size:17px;line-height:1.7;margin-bottom:32px;">Talk soon,<br>Steph<br><span style="font-size:14px;color:#888;">Entre_Steph</span></p>
 
   <hr style="border:none;border-top:1px solid #eee;margin:32px 0;">
-
   <p style="font-size:12px;color:#aaa;line-height:1.7;font-family:'Arial',sans-serif;">
     You're receiving this because you requested the 30-Minute AI Workday Cheatsheet at entresteph.com.<br>
-    To unsubscribe, reply to this email with "unsubscribe" in the subject line.
+    To unsubscribe, reply with "unsubscribe" in the subject line.
   </p>
 </div>`;
 
-  const msg = [
-    `From: Steph | Entre_Steph <AgentHarper@thedateprofiler.com>`,
-    `To: ${email}`,
-    `Subject: ${subject}`,
-    `Content-Type: text/html; charset=utf-8`,
-    ``,
+  const transport = getSmtpTransport();
+  return transport.sendMail({
+    from: 'Steph | Entre_Steph <steph@entresteph.com>',
+    to: email,
+    subject,
     html
-  ].join('\r\n');
-
-  const raw = Buffer.from(msg).toString('base64')
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-
-  return request('POST',
-    'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
-    { raw },
-    { Authorization: `Bearer ${token}` }
-  );
+  });
 }
 
 module.exports = async function handler(req, res) {
@@ -163,9 +156,8 @@ module.exports = async function handler(req, res) {
       console.error('Kit error:', kitResult.body);
     }
 
-    // 3. Send instant delivery email via Gmail
-    const token = await getGmailToken();
-    await sendDeliveryEmail(first, addr, token);
+    // 3. Send instant delivery email via steph@entresteph.com
+    await sendDeliveryEmail(first, addr);
 
     return res.status(200).json({ success: true });
   } catch (err) {
