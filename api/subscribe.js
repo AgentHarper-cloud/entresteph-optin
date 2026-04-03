@@ -6,6 +6,8 @@ const https = require('https');
 
 const KIT_TAG_ID = '18738594'; // entre-steph-free-optin
 const PDF_DOWNLOAD_URL = 'https://drive.google.com/uc?id=1hQgsbtUUJRlUwNK_WNXe0oP3AvkOeZIM&export=download';
+const TURSO_URL = process.env.TURSO_URL;
+const TURSO_TOKEN = process.env.TURSO_TOKEN;
 
 function request(method, url, data, headers = {}) {
   return new Promise((resolve, reject) => {
@@ -33,6 +35,28 @@ function request(method, url, data, headers = {}) {
     if (body) req.write(body);
     req.end();
   });
+}
+
+async function addToTurso(firstName, email) {
+  const now = Math.floor(Date.now() / 1000);
+  const nextSendAt = now + 86400; // Day 2 email in 24 hours
+  return request('POST', TURSO_URL, {
+    requests: [
+      {
+        type: 'execute',
+        stmt: {
+          sql: 'INSERT OR IGNORE INTO entresteph_subscribers (email, first_name, subscribed_at, next_email, next_send_at) VALUES (?, ?, ?, 2, ?)',
+          args: [
+            { type: 'text', value: email },
+            { type: 'text', value: firstName },
+            { type: 'integer', value: String(now) },
+            { type: 'integer', value: String(nextSendAt) }
+          ]
+        }
+      },
+      { type: 'close' }
+    ]
+  }, { Authorization: `Bearer ${TURSO_TOKEN}` });
 }
 
 async function addToKit(firstName, email) {
@@ -130,14 +154,16 @@ module.exports = async function handler(req, res) {
   const addr  = email.trim().toLowerCase();
 
   try {
-    // 1. Add to Kit (tag fires any sequence automation)
+    // 1. Add to Turso (schedules follow-up sequence)
+    await addToTurso(first, addr).catch(e => console.error('Turso error:', e.message));
+
+    // 2. Add to Kit (subscriber list reference)
     const kitResult = await addToKit(first, addr);
     if (kitResult.status >= 400) {
       console.error('Kit error:', kitResult.body);
-      // Non-fatal — still deliver the PDF
     }
 
-    // 2. Send instant delivery email via Gmail
+    // 3. Send instant delivery email via Gmail
     const token = await getGmailToken();
     await sendDeliveryEmail(first, addr, token);
 

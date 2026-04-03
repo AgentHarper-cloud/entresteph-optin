@@ -2,5 +2,11 @@
   "rewrites": [
     { "source": "/thank-you", "destination": "/thank-you.html" },
     { "source": "/privacy", "destination": "/privacy.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/process-entresteph-emails",
+      "schedule": "0 14 * * *"
+    }
   ]
 }
