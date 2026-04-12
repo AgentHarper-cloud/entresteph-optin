@@ -1,116 +1,168 @@
 // Entre_Steph Follow-Up Email Cron
-// Runs daily — sends Day 2, Day 4, Day 6 emails to subscribers
+// Runs daily — sends Emails 2–7 (Days 2, 3, 5, 7, 9, 11)
+// Email 1 (Day 0) is sent immediately by subscribe.js
 
 const https = require('https');
 const nodemailer = require('nodemailer');
 
-const TURSO_URL = process.env.TURSO_URL;
+const TURSO_URL  = process.env.TURSO_URL;
 const TURSO_TOKEN = process.env.TURSO_TOKEN;
-const PDF_DOWNLOAD_URL = 'https://drive.google.com/uc?id=1hQgsbtUUJRlUwNK_WNXe0oP3AvkOeZIM&export=download';
-const AFFILIATE_URL = 'https://aimonetizationslive.com/?am_id=stephanie9937';
 
-// ─── Email Copy ───────────────────────────────────────────────────────────────
+const CHEATSHEET_URL = 'https://drive.google.com/file/d/1hQgsbtUUJRlUwNK_WNXe0oP3AvkOeZIM/view?usp=sharing';
+const TRAINING_URL   = 'https://training.entresteph.com';
+const TRIAL_URL      = 'https://trial.entresteph.com';
+const MONTHLY_URL    = 'https://monthly.entresteph.com';
+const AFFILIATE_URL  = 'https://aimonetizationslive.com/?am_id=stephanie9937';
 
-function getEmail(emailNum, firstName) {
+// ─── Delay after each email (seconds until next email is sent) ────────────────
+// Email 2 sent → wait 1 day  → Email 3 on Day 3
+// Email 3 sent → wait 2 days → Email 4 on Day 5
+// Email 4 sent → wait 2 days → Email 5 on Day 7
+// Email 5 sent → wait 2 days → Email 6 on Day 9
+// Email 6 sent → wait 2 days → Email 7 on Day 11
+// Email 7 sent → sequence complete
+const DELAY_AFTER = {
+  2: 86400,    // 1 day
+  3: 172800,   // 2 days
+  4: 172800,
+  5: 172800,
+  6: 172800,
+  7: null      // complete
+};
+
+// ─── Email Content ────────────────────────────────────────────────────────────
+
+function emailHtml(body) {
+  return `
+<div style="font-family:'Georgia',serif;max-width:580px;margin:0 auto;padding:40px 32px;color:#222;background:#fff;">
+  <p style="font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:#C9A84C;font-family:'Arial',sans-serif;margin-bottom:28px;">ENTRE_STEPH</p>
+  ${body}
+  <hr style="border:none;border-top:1px solid #eee;margin:32px 0;">
+  <p style="font-size:12px;color:#aaa;line-height:1.7;font-family:'Arial',sans-serif;">
+    You're receiving this because you requested the 30-Minute AI Workday Cheatsheet at entresteph.com.<br>
+    To unsubscribe, <a href="https://free.entresteph.com/api/unsubscribe?email={{EMAIL}}" style="color:#aaa;">click here</a>.
+  </p>
+</div>`;
+}
+
+function p(text) {
+  return `<p style="font-size:17px;line-height:1.7;margin-bottom:20px;">${text}</p>`;
+}
+
+function btn(text, url) {
+  return `<div style="text-align:center;margin:32px 0;">
+    <a href="${url}" style="display:inline-block;background:#C8230F;color:#fff;padding:14px 32px;font-family:'Arial',sans-serif;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.05em;">${text} &rarr;</a>
+  </div>`;
+}
+
+function sig() {
+  return `<p style="font-size:17px;line-height:1.7;margin-bottom:8px;">Talk soon,<br>Steph<br><span style="font-size:14px;color:#888;">Entre_Steph</span></p>`;
+}
+
+function getEmail(num, firstName, email) {
+  const name = firstName || 'friend';
+
   const emails = {
+
+    // ── Email 2 — Day 2 — Check-in ─────────────────────────────────────────
     2: {
       subject: `Did you try it yet?`,
-      html: `
-<div style="font-family:'Georgia',serif;max-width:580px;margin:0 auto;padding:40px 32px;color:#222;background:#fff;">
-  <p style="font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:#C9A84C;font-family:'Arial',sans-serif;margin-bottom:28px;">ENTRE_STEPH</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Hey ${firstName},</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Just checking in. Did you get a chance to open the cheatsheet?</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Task 1 is the one I'd start with. It takes about 8 minutes and the AI prompt does most of the heavy lifting. Most people who try it end up doing all three tasks that same day because it goes faster than they expect.</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">If you haven't downloaded it yet, here it is again:</p>
-
-  <div style="text-align:center;margin:32px 0;">
-    <a href="${PDF_DOWNLOAD_URL}" style="display:inline-block;background:#B91C1C;color:#fff;padding:14px 32px;font-family:'Arial',sans-serif;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.05em;">
-      Download Your Cheatsheet &rarr;
-    </a>
-  </div>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:32px;">Let me know how it goes. I read every reply.</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:32px;">Talk soon,<br>Steph<br><span style="font-size:14px;color:#888;">Entre_Steph</span></p>
-
-  <hr style="border:none;border-top:1px solid #eee;margin:32px 0;">
-  <p style="font-size:12px;color:#aaa;line-height:1.7;font-family:'Arial',sans-serif;">
-    You're receiving this because you requested the 30-Minute AI Workday Cheatsheet at entresteph.com.<br>
-    To unsubscribe, reply with "unsubscribe" in the subject line.
-  </p>
-</div>`
+      html: emailHtml(`
+        ${p(`Hey ${name},`)}
+        ${p(`Just checking in. Did you get a chance to open the cheatsheet?`)}
+        ${p(`I know how it goes. You download something, life happens, and it sits in your inbox for a week.`)}
+        ${p(`So I wanted to nudge you. Pick one of the three prompts from the cheatsheet and try it today. Copy and paste it into ChatGPT or Claude and see what comes back.`)}
+        ${p(`It takes 5 minutes. And it might change how you think about running your business in stolen time.`)}
+        ${btn('Download Your Cheatsheet', CHEATSHEET_URL)}
+        ${p(`Reply and let me know what you think. I read every response.`)}
+        ${sig()}
+      `).replace('{{EMAIL}}', encodeURIComponent(email))
     },
 
+    // ── Email 3 — Day 3 — DIY Training Intro ──────────────────────────────
     3: {
-      subject: `Something I think you'll find useful`,
-      html: `
-<div style="font-family:'Georgia',serif;max-width:580px;margin:0 auto;padding:40px 32px;color:#222;background:#fff;">
-  <p style="font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:#C9A84C;font-family:'Arial',sans-serif;margin-bottom:28px;">ENTRE_STEPH</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Hey ${firstName},</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Since you grabbed the cheatsheet, I'm guessing you're serious about using AI to actually simplify your workday, not just play with it.</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">I came across a free live workshop from someone named Joseph Aaron. He teaches how to build an income stream using AI tools, specifically for people who don't have a big following or a lot of time.</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">I thought of you immediately.</p>
-
-  <div style="text-align:center;margin:32px 0;">
-    <a href="${AFFILIATE_URL}" style="display:inline-block;background:#B91C1C;color:#fff;padding:14px 32px;font-family:'Arial',sans-serif;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.05em;">
-      Save Your Free Seat &rarr;
-    </a>
-  </div>
-
-  <p style="font-size:14px;line-height:1.7;color:#888;margin-bottom:32px;font-family:'Arial',sans-serif;font-style:italic;">Note: This is an affiliate link. I may earn a commission if you purchase anything after the workshop. I only share things I'd actually recommend.</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:32px;">Talk soon,<br>Steph<br><span style="font-size:14px;color:#888;">Entre_Steph</span></p>
-
-  <hr style="border:none;border-top:1px solid #eee;margin:32px 0;">
-  <p style="font-size:12px;color:#aaa;line-height:1.7;font-family:'Arial',sans-serif;">
-    You're receiving this because you requested the 30-Minute AI Workday Cheatsheet at entresteph.com.<br>
-    To unsubscribe, reply with "unsubscribe" in the subject line.
-  </p>
-</div>`
+      subject: `How I turn 1 video into 30 posts in 30 minutes`,
+      html: emailHtml(`
+        ${p(`Hey ${name},`)}
+        ${p(`The cheatsheet gives you the prompts. But I wanted to show you exactly how I use AI for my own content, because what I've built goes a little deeper than that.`)}
+        ${p(`Every month I take one piece of content and turn it into 30 posts. Hooks, captions, carousel concepts, reel scripts, all of it. In about 30 minutes. Using a simple AI system I built myself.`)}
+        ${p(`I packaged the whole thing into a training so you can do it too.`)}
+        ${p(`It's $15 and you can grab it here:`)}
+        ${btn('Get the $15 Training', TRAINING_URL)}
+        ${p(`Or if you'd rather see it live, I'm running a free workshop soon where I walk through the whole system on screen in real time. I'll send details when the date is confirmed.`)}
+        ${p(`Either way, this is the system. And it works whether you have 30 minutes a day or 30 minutes a week.`)}
+        ${sig()}
+      `).replace('{{EMAIL}}', encodeURIComponent(email))
     },
 
+    // ── Email 4 — Day 5 — Done For You Intro ──────────────────────────────
     4: {
-      subject: `Last reminder — free workshop`,
-      html: `
-<div style="font-family:'Georgia',serif;max-width:580px;margin:0 auto;padding:40px 32px;color:#222;background:#fff;">
-  <p style="font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:#C9A84C;font-family:'Arial',sans-serif;margin-bottom:28px;">ENTRE_STEPH</p>
+      subject: `What if you didn't have to do it yourself?`,
+      html: emailHtml(`
+        ${p(`Hey ${name},`)}
+        ${p(`The system I showed you in my last email works really well, if you have the time and headspace to run it yourself.`)}
+        ${p(`But I know that's not everyone.`)}
+        ${p(`Some days you just need it done. No prompts, no tweaking, no staring at a screen trying to figure out what to post. You need content ready to go so you can focus on actually running your business.`)}
+        ${p(`That's exactly what I do for a handful of clients every month.`)}
+        ${p(`I take your existing content, run it through my AI system, and deliver 14 reel scripts, 7 carousel concepts, and captions for everything in 48 hours. Done for you. Ready to post.`)}
+        ${p(`It's called the 7-Day Content Trial and it's $45 to get started. No subscription. No commitment. Just 7 days of content so you can see exactly what it feels like to have this handled.`)}
+        ${btn('Grab Your 7-Day Trial — $45', TRIAL_URL)}
+        ${sig()}
+      `).replace('{{EMAIL}}', encodeURIComponent(email))
+    },
 
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Hey ${firstName},</p>
+    // ── Email 5 — Day 7 — Content Machine Monthly ─────────────────────────
+    5: {
+      subject: `Ready to make this a system?`,
+      html: emailHtml(`
+        ${p(`Hey ${name},`)}
+        ${p(`If you grabbed the trial this week, amazing. Your content is on its way.`)}
+        ${p(`If you're still on the fence, I want to make this as simple as possible.`)}
+        ${p(`The Content Machine is 30 days of done-for-you content every month. 60 reel scripts. 30 carousel concepts. Captions for everything. Scheduled and ready to post every single day.`)}
+        ${p(`$99 a month. Cancel anytime.`)}
+        ${p(`For most business owners that's less than what they spend on one dinner out, and it solves one of the biggest bottlenecks in their business.`)}
+        ${p(`If you're ready to stop thinking about content and just have it handled:`)}
+        ${btn('Start the Content Machine — $99/mo', MONTHLY_URL)}
+        ${p(`Not ready for the full month yet? Start with the 7-day trial at $45 and see how it feels first:`)}
+        ${btn('Try It for 7 Days — $45', TRIAL_URL)}
+        ${p(`Either way, you've got options. Reply if you have questions.`)}
+        ${sig()}
+      `).replace('{{EMAIL}}', encodeURIComponent(email))
+    },
 
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">Just a quick heads up — the free AI workshop I mentioned is coming up soon and I didn't want you to miss it if it's been on your mind.</p>
+    // ── Email 6 — Day 9 — Webinar Invite ──────────────────────────────────
+    6: {
+      subject: `Want to see what's possible with AI?`,
+      html: emailHtml(`
+        ${p(`Hey ${name},`)}
+        ${p(`I want to show you something that stopped me in my tracks when I first saw it.`)}
+        ${p(`My mentor Joseph Aaron sits down on a live screen share and builds a complete AI-powered business from scratch, offer, brand, lead generation system, in 60 minutes flat. While you watch.`)}
+        ${p(`No slides. No theory. Just proof of what's possible.`)}
+        ${p(`It's completely free and it's the reason I started building my own AI content system in the first place.`)}
+        ${p(`If you're curious about what a full AI-powered business actually looks like, not just the content side but the whole thing:`)}
+        ${btn('Watch the Free Workshop', AFFILIATE_URL)}
+        <p style="font-size:13px;line-height:1.7;color:#999;margin-bottom:32px;font-family:'Arial',sans-serif;font-style:italic;">Disclosure: This is an affiliate link. If you decide to invest in Joseph's full system after the webinar, I may earn a commission at no extra cost to you. I only share things I genuinely believe in.</p>
+        ${p(`See you there,`)}
+        ${sig()}
+      `).replace('{{EMAIL}}', encodeURIComponent(email))
+    },
 
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">No hype here. Just a solid look at how AI tools can help you build something real, even with a packed schedule and stolen pockets of time.</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:20px;">This is the last time I'll mention it.</p>
-
-  <div style="text-align:center;margin:32px 0;">
-    <a href="${AFFILIATE_URL}" style="display:inline-block;background:#B91C1C;color:#fff;padding:14px 32px;font-family:'Arial',sans-serif;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:0.05em;">
-      Grab Your Free Seat &rarr;
-    </a>
-  </div>
-
-  <p style="font-size:14px;line-height:1.7;color:#888;margin-bottom:32px;font-family:'Arial',sans-serif;font-style:italic;">Affiliate link — I may earn a commission at no cost to you.</p>
-
-  <p style="font-size:17px;line-height:1.7;margin-bottom:32px;">Talk soon,<br>Steph<br><span style="font-size:14px;color:#888;">Entre_Steph</span></p>
-
-  <hr style="border:none;border-top:1px solid #eee;margin:32px 0;">
-  <p style="font-size:12px;color:#aaa;line-height:1.7;font-family:'Arial',sans-serif;">
-    You're receiving this because you requested the 30-Minute AI Workday Cheatsheet at entresteph.com.<br>
-    To unsubscribe, reply with "unsubscribe" in the subject line.
-  </p>
-</div>`
+    // ── Email 7 — Day 11 — Final Webinar Reminder ─────────────────────────
+    7: {
+      subject: `Last chance to watch this live`,
+      html: emailHtml(`
+        ${p(`Hey ${name},`)}
+        ${p(`Just a quick reminder. If you haven't watched Joseph build a complete AI business live on screen yet, this is your nudge.`)}
+        ${p(`It's free. It's live. And it will completely change how you think about what's possible with AI.`)}
+        ${btn('Watch the Free Workshop', AFFILIATE_URL)}
+        <p style="font-size:13px;line-height:1.7;color:#999;margin-bottom:32px;font-family:'Arial',sans-serif;font-style:italic;">Affiliate link — I may earn a commission if you invest in Joseph's system after the webinar, at no cost to you.</p>
+        ${sig()}
+      `).replace('{{EMAIL}}', encodeURIComponent(email))
     }
+
   };
 
-  return emails[emailNum] || null;
+  return emails[num] || null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -170,9 +222,8 @@ function getSmtpTransport() {
 }
 
 async function sendEmail(toEmail, firstName, emailNum) {
-  const content = getEmail(emailNum, firstName);
+  const content = getEmail(emailNum, firstName, toEmail);
   if (!content) return;
-
   const transport = getSmtpTransport();
   return transport.sendMail({
     from: 'Steph | Entre_Steph <steph@entresteph.com>',
@@ -185,7 +236,6 @@ async function sendEmail(toEmail, firstName, emailNum) {
 // ─── Main Handler ─────────────────────────────────────────────────────────────
 
 module.exports = async function handler(req, res) {
-  // Allow manual trigger via GET (for testing) or cron via GET
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -193,14 +243,13 @@ module.exports = async function handler(req, res) {
   const now = Math.floor(Date.now() / 1000);
 
   try {
-    // Get subscribers due for their next email
     const result = await turso(
-      'SELECT id, email, first_name, next_email FROM entresteph_subscribers WHERE completed = 0 AND next_send_at <= ? AND next_email <= 4',
+      'SELECT id, email, first_name, next_email FROM entresteph_subscribers WHERE completed = 0 AND next_send_at <= ? AND next_email <= 7',
       [{ type: 'integer', value: String(now) }]
     );
 
     const rows = result?.body?.results?.[0]?.response?.result?.rows || [];
-    console.log(`Entre_Steph cron: ${rows.length} subscribers to process`);
+    console.log(`Entre_Steph cron: ${rows.length} subscribers due`);
 
     if (rows.length === 0) {
       return res.status(200).json({ sent: 0, message: 'No emails due' });
@@ -217,14 +266,15 @@ module.exports = async function handler(req, res) {
       try {
         await sendEmail(email, firstName || 'friend', nextEmail);
 
-        // Advance to next email or mark complete
-        if (nextEmail >= 4) {
+        const delay = DELAY_AFTER[nextEmail];
+
+        if (!delay) {
+          // Email 7 sent — mark complete
           await turso(
             'UPDATE entresteph_subscribers SET completed = 1 WHERE id = ?',
             [{ type: 'integer', value: String(id) }]
           );
         } else {
-          const delay = nextEmail === 2 ? 172800 : 172800; // +2 days each step
           await turso(
             'UPDATE entresteph_subscribers SET next_email = ?, next_send_at = ? WHERE id = ?',
             [
@@ -235,6 +285,7 @@ module.exports = async function handler(req, res) {
           );
         }
         sent++;
+        console.log(`Sent email ${nextEmail} to ${email}`);
       } catch (err) {
         console.error(`Failed for ${email}:`, err.message);
         errors.push(email);
